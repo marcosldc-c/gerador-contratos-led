@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Contratos de Locação de LED</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilos para o botão de remover painel */
+        .remove-panel-btn {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border-radius: 9999px; /* full rounded */
+            padding: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            flex-shrink: 0; /* Prevent shrinking on small screens */
+            margin-left: 0.5rem; /* Space from inputs */
+            height: 2.5rem; /* Match input height */
+            display: flex; /* For icon centering */
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-panel-btn:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+        /* Estilo para a visualização do HTML no modal */
+        #generatedContractHtml {
+            white-space: pre-wrap; /* Preserves whitespace and wraps text */
+            word-wrap: break-word; /* Breaks long words */
+            max-height: 70vh; /* Limit height for scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            padding: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            background-color: #f9fafb; /* gray-50 */
+        }
+        /* Consistent form input styling */
+        .form-input {
+            margin-top: 0.25rem; /* mb-1 */
+            display: block; /* block */
+            width: 100%; /* w-full */
+            padding: 0.5rem 1rem; /* px-4 py-2 */
+            border: 1px solid #d1d5db; /* border border-gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            font-size: 0.875rem; /* sm:text-sm */
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-input:focus {
+            border-color: #3b82f6; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 1px #3b82f6, 0 0 0 3px rgba(59, 130, 246, 0.5); /* focus:ring-blue-500 focus:ring-offset-2 */
+            outline: none;
+        }
+        .form-file-input {
+            margin-top: 0.25rem; /* mb-1 */
+            display: block; /* block */
+            width: 100%; /* w-full */
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* text-gray-500 */
+            padding: 0.5rem 1rem; /* file:py-2 file:px-4 */
+        }
+        .form-file-input::file-selector-button {
+            margin-right: 1rem; /* file:mr-4 */
+            padding: 0.5rem 1rem; /* file:py-2 file:px-4 */
+            border-radius: 9999px; /* file:rounded-full */
+            border: 0; /* file:border-0 */
+            font-size: 0.875rem; /* file:text-sm */
+            font-weight: 600; /* file:font-semibold */
+            background-color: #eff6ff; /* file:bg-blue-50 */
+            color: #2563eb; /* file:text-blue-700 */
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .form-file-input::file-selector-button:hover {
+            background-color: #dbeafe; /* hover:file:bg-blue-100 */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white text-center rounded-t-xl">
+            <h1 class="text-4xl font-extrabold mb-2">Gerador de Contratos de Locação de Painéis de LED</h1>
+            <p class="text-lg opacity-90">Crie contratos de locação profissionais de forma rápida e eficiente.</p>
+        </header>
+
+        <main class="p-6 sm:p-8 lg:p-10">
+            <section class="mb-8 text-center">
+                <h2 class="text-3xl font-semibold text-gray-800 mb-4">Detalhes da Locação</h2>
+                <p class="text-gray-600 leading-relaxed max-w-3xl mx-auto">
+                    Preencha os campos abaixo com as informações da empresa locadora, empresa locatária, detalhes do evento,
+                    painéis de LED, estruturas e equipamentos de som. O sistema calculará os valores automaticamente e gerará o conteúdo do contrato.
+                </p>
+            </section>
+
+            <section class="bg-gray-50 p-6 rounded-lg shadow-inner mb-8">
+                <form id="contractForm" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-blue-200">
+                            <h3 class="text-xl font-bold text-blue-700 mb-4">Empresa Locadora (Sua Empresa)</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="locadoraNome" class="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa:</label>
+                                    <input type="text" id="locadoraNome" name="locadoraNome" required class="form-input" placeholder="Nome completo da sua empresa">
+                                </div>
+                                <div>
+                                    <label for="locadoraCNPJ" class="block text-sm font-medium text-gray-700 mb-1">CNPJ:</label>
+                                    <input type="text" id="locadoraCNPJ" name="locadoraCNPJ" required class="form-input" placeholder="XX.XXX.XXX/XXXX-XX">
+                                </div>
+                                <div>
+                                    <label for="locadoraEndereco" class="block text-sm font-medium text-gray-700 mb-1">Endereço:</label>
+                                    <textarea id="locadoraEndereco" name="locadoraEndereco" rows="2" required class="form-input" placeholder="Rua, Número, Bairro, Cidade, Estado, CEP"></textarea>
+                                </div>
+                                <div>
+                                    <label for="locadoraTelefone" class="block text-sm font-medium text-gray-700 mb-1">Telefone:</label>
+                                    <input type="text" id="locadoraTelefone" name="locadoraTelefone" required class="form-input" placeholder="(XX) XXXX-XXXX">
+                                </div>
+                                <div>
+                                    <label for="locadoraResponsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável:</label>
+                                    <input type="text" id="locadoraResponsavel" name="locadoraResponsavel" required class="form-input" placeholder="Nome do responsável">
+                                </div>
+                                <div>
+                                    <label for="locadoraLogo" class="block text-sm font-medium text-gray-700 mb-1">Upload da Logo da Empresa (Opcional):</label>
+                                    <input type="file" id="locadoraLogo" name="locadoraLogo" class="form-file-input">
+                                    <p class="text-xs text-gray-500 mt-1">*Apenas para demonstração. Não é feito upload real ou inclusão no texto gerado.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-green-200">
+                            <h3 class="text-xl font-bold text-green-700 mb-4">Empresa Locatária (Cliente)</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="locatariaNome" class="block text-sm font-medium text-gray-700 mb-1">Nome da Empresa:</label>
+                                    <input type="text" id="locatariaNome" name="locatariaNome" required class="form-input" placeholder="Nome completo do cliente">
+                                </div>
+                                <div>
+                                    <label for="locatariaCNPJ" class="block text-sm font-medium text-gray-700 mb-1">CNPJ:</label>
+                                    <input type="text" id="locatariaCNPJ" name="locatariaCNPJ" required class="form-input" placeholder="XX.XXX.XXX/XXXX-XX">
+                                </div>
+                                <div>
+                                    <label for="locatariaEndereco" class="block text-sm font-medium text-gray-700 mb-1">Endereço:</label>
+                                    <textarea id="locatariaEndereco" name="locatariaEndereco" rows="2" required class="form-input" placeholder="Rua, Número, Bairro, Cidade, Estado, CEP"></textarea>
+                                </div>
+                                <div>
+                                    <label for="locatariaResponsavel" class="block text-sm font-medium text-gray-700 mb-1">Responsável:</label>
+                                    <input type="text" id="locatariaResponsavel" name="locatariaResponsavel" required class="form-input" placeholder="Nome do responsável pelo cliente">
+                                </div>
+                                <div>
+                                    <label for="locatariaLogo" class="block text-sm font-medium text-gray-700 mb-1">Upload da Logo do Cliente (Opcional):</label>
+                                    <input type="file" id="locatariaLogo" name="locatariaLogo" class="form-file-input">
+                                    <p class="text-xs text-gray-500 mt-1">*Apenas para demonstração. Não é feito upload real ou inclusão no texto gerado.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-purple-200">
+                        <h3 class="text-xl font-bold text-purple-700 mb-4">Dados do Evento / Locação</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="tituloLocacao" class="block text-sm font-medium text-gray-700 mb-1">Título da Locação:</label>
+                                <input type="text" id="tituloLocacao" name="tituloLocacao" required class="form-input" placeholder="Ex: Locação para Show - Banda XYZ">
+                            </div>
+                            <div>
+                                <label for="localEvento" class="block text-sm font-medium text-gray-700 mb-1">Local do Evento:</label>
+                                <input type="text" id="localEvento" name="localEvento" required class="form-input" placeholder="Nome e endereço do local">
+                            </div>
+                            <div>
+                                <label for="quantidadeDias" class="block text-sm font-medium text-gray-700 mb-1">Quantidade de Dias:</label>
+                                <input type="number" id="quantidadeDias" name="quantidadeDias" min="1" value="1" required class="form-input">
+                            </div>
+                            <div>
+                                <label for="datasEspecificas" class="block text-sm font-medium text-gray-700 mb-1">Datas Específicas (separadas por vírgula):</label>
+                                <input type="text" id="datasEspecificas" name="datasEspecificas" required class="form-input" placeholder="Ex: 01/01/2025, 02/01/2025">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-orange-200">
+                        <h3 class="text-xl font-bold text-orange-700 mb-4">Painéis de LED</h3>
+                        <div id="ledPanelsContainer" class="space-y-4">
+                            <div class="flex flex-col sm:flex-row items-end sm:space-x-4 space-y-4 sm:space-y-0 border p-3 rounded-md bg-orange-50" data-panel-id="1">
+                                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                                    <div>
+                                        <label for="ledTipo_1" class="block text-sm font-medium text-gray-700 mb-1">Tipo:</label>
+                                        <select id="ledTipo_1" name="ledTipo" required class="form-input">
+                                            <option value="">Selecione</option>
+                                            <option value="Indoor">Indoor</option>
+                                            <option value="Outdoor">Outdoor</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="ledHeight_1" class="block text-sm font-medium text-gray-700 mb-1">Altura (m):</label>
+                                        <input type="number" id="ledHeight_1" name="ledHeight" min="0" step="0.01" value="0" required class="form-input led-calc">
+                                    </div>
+                                    <div>
+                                        <label for="ledWidth_1" class="block text-sm font-medium text-gray-700 mb-1">Largura (m):</label>
+                                        <input type="number" id="ledWidth_1" name="ledWidth" min="0" step="0.01" value="0" required class="form-input led-calc">
+                                    </div>
+                                    <div>
+                                        <label for="ledValorM2_1" class="block text-sm font-medium text-gray-700 mb-1">Valor por m² (R$):</label>
+                                        <input type="number" id="ledValorM2_1" name="ledValorM2" min="0" step="0.01" value="0" required class="form-input led-calc">
+                                    </div>
+                                </div>
+                                <div class="w-full sm:w-28 text-right flex flex-col justify-between h-full">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Total:</label>
+                                        <span id="ledTotal_1" class="block text-lg font-semibold text-orange-800">R$ 0.00</span>
+                                    </div>
+                                    <button type="button" class="remove-panel-btn mt-4 sm:mt-0" onclick="removePanel(this)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addLedPanelBtn" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors duration-200">Adicionar Painel de LED</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-yellow-200">
+                        <h3 class="text-xl font-bold text-yellow-700 mb-4">Estruturas (Grids)</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label for="gridValorML" class="block text-sm font-medium text-gray-700 mb-1">Valor por Metro Linear (R$):</label>
+                                <input type="number" id="gridValorML" name="gridValorML" min="0" step="0.01" value="0" class="form-input calc-total">
+                            </div>
+                            <div>
+                                <label for="gridQtdM" class="block text-sm font-medium text-gray-700 mb-1">Quantidade de Metros:</label>
+                                <input type="number" id="gridQtdM" name="gridQtdM" min="0" step="0.01" value="0" class="form-input calc-total">
+                            </div>
+                            <div class="text-right">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Grids:</label>
+                                <span id="gridTotal" class="block text-lg font-semibold text-yellow-800">R$ 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-pink-200">
+                        <h3 class="text-xl font-bold text-pink-700 mb-4">Equipamentos de Som (Opcionais)</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                <div>
+                                    <label for="micQtd" class="block text-sm font-medium text-gray-700 mb-1">Microfones - Qtd:</label>
+                                    <input type="number" id="micQtd" name="micQtd" min="0" value="0" class="form-input calc-total">
+                                </div>
+                                <div>
+                                    <label for="micValorUnit" class="block text-sm font-medium text-gray-700 mb-1">Valor Unitário (R$):</label>
+                                    <input type="number" id="micValorUnit" name="micValorUnit" min="0" step="0.01" value="0" class="form-input calc-total">
+                                </div>
+                                <div class="sm:col-span-2 text-right">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Microfones:</label>
+                                    <span id="micTotal" class="block text-lg font-semibold text-pink-800">R$ 0.00</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                <div>
+                                    <label for="caixaQtd" class="block text-sm font-medium text-gray-700 mb-1">Caixas de Som - Qtd:</label>
+                                    <input type="number" id="caixaQtd" name="caixaQtd" min="0" value="0" class="form-input calc-total">
+                                </div>
+                                <div>
+                                    <label for="caixaValorUnit" class="block text-sm font-medium text-gray-700 mb-1">Valor Unitário (R$):</label>
+                                    <input type="number" id="caixaValorUnit" name="caixaValorUnit" min="0" step="0.01" value="0" class="form-input calc-total">
+                                </div>
+                                <div class="sm:col-span-2 text-right">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Caixas de Som:</label>
+                                    <span id="caixaTotal" class="block text-lg font-semibold text-pink-800">R$ 0.00</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                <div>
+                                    <label for="tecnicoQtd" class="block text-sm font-medium text-gray-700 mb-1">Técnico de Som - Qtd:</label>
+                                    <input type="number" id="tecnicoQtd" name="tecnicoQtd" min="0" value="0" class="form-input calc-total">
+                                </div>
+                                <div>
+                                    <label for="tecnicoValorUnit" class="block text-sm font-medium text-gray-700 mb-1">Valor Unitário (R$):</label>
+                                    <input type="number" id="tecnicoValorUnit" name="tecnicoValorUnit" min="0" step="0.01" value="0" class="form-input calc-total">
+                                </div>
+                                <div class="sm:col-span-2 text-right">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Técnico de Som:</label>
+                                    <span id="tecnicoTotal" class="block text-lg font-semibold text-pink-800">R$ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-gray-300">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Resumo Financeiro</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center border-b pb-2">
+                                <span class="text-gray-700 font-medium">Soma de Todos os Itens:</span>
+                                <span id="somaItens" class="text-xl font-bold text-gray-900">R$ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="descontoTipo" class="text-gray-700 font-medium">Desconto:</label>
+                                <div class="flex items-center space-x-2">
+                                    <select id="descontoTipo" name="descontoTipo" class="form-input w-24 calc-total">
+                                        <option value="none">Nenhum</option>
+                                        <option value="percent">Percentual (%)</option>
+                                        <option value="fixed">Valor Fixo (R$)</option>
+                                    </select>
+                                    <input type="number" id="descontoValor" name="descontoValor" min="0" step="0.01" value="0" class="form-input w-32 calc-total" disabled>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center pt-4 border-t-2 border-gray-200">
+                                <span class="text-gray-800 text-2xl font-bold">Valor Final da Locação:</span>
+                                <span id="valorFinal" class="text-green-600 text-3xl font-extrabold">R$ 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="generateContractBtn"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Gerar Conteúdo do Contrato e Salvar
+                    </button>
+
+                    <div id="messageContainer" class="mt-4 p-4 rounded-md text-center hidden"></div>
+
+                    <div id="userIdContainer" class="mt-4 p-3 bg-gray-100 rounded-md text-sm text-gray-600 flex items-center justify-between hidden">
+                        <span>Seu ID de Usuário: <span id="displayUserId" class="font-mono break-all"></span></span>
+                        <button
+                            id="copyUserIdBtn"
+                            class="ml-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs"
+                            title="Copiar ID do Usuário"
+                        >
+                            Copiar
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <footer class="bg-gray-800 p-6 text-white text-center rounded-b-xl">
+            <p class="text-sm">&copy; <span id="currentYear"></span> Sua Empresa. Todos os direitos reservados.</p>
+            <p class="text-xs mt-2 opacity-80">Desenvolvido com HTML, JavaScript, Tailwind CSS e Firebase.</p>
+        </footer>
+    </div>
+
+    <div id="contractModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-11/12 md:w-3/4 lg:w-2/3 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Contrato Gerado (Para Google Docs)</h3>
+            <p class="text-gray-600 mb-4">Copie o texto abaixo e cole-o em um novo documento do Google Docs para edição e formatação final. Lembre-se de inserir as logos manualmente.</p>
+            <div id="generatedContractHtml" class="w-full p-4 border border-gray-300 rounded-md text-sm bg-gray-50"></div>
+            <div class="mt-4 flex justify-end space-x-3">
+                <button id="copyContractHtmlBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">Copiar HTML</button>
+                <button id="downloadContractHtmlBtn" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200">Descarregar HTML</button>
+                <button id="closeContractModalBtn" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors duration-200">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        let panelCounter = 1; // Counter for dynamic LED panels
+
+        // Helper function to copy text to clipboard
+        const copyToClipboard = (text) => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                console.log('Text copied to clipboard!');
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            document.body.removeChild(textarea);
+        };
+
+        // Function to display messages
+        const showMessage = (msg, type = 'success') => {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.textContent = msg;
+            messageContainer.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            if (type === 'success') {
+                messageContainer.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                messageContainer.classList.add('bg-red-100', 'text-red-800');
+            }
+        };
+
+        // Initialize Firebase
+        const initializeFirebase = async () => {
+            try {
+                // Use a placeholder Firebase config if __firebase_config is not defined (e.g., on Vercel)
+                const firebaseConfig = typeof __firebase_config !== 'undefined'
+                    ? JSON.parse(__firebase_config)
+                    : {
+                        apiKey: "YOUR_API_KEY", // Substitua pela sua chave de API do Firebase
+                        authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // Substitua pelo seu ID de projeto
+                        projectId: "YOUR_PROJECT_ID", // Substitua pelo seu ID de projeto
+                        storageBucket: "YOUR_PROJECT_ID.appspot.com", // Substitua pelo seu ID de projeto
+                        messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Substitua pelo seu ID de remetente
+                        appId: "YOUR_APP_ID" // Substitua pelo seu App ID
+                    };
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                const authenticate = async () => {
+                    try {
+                        // __initial_auth_token is specific to Canvas environment
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth); // Sign in anonymously if not in Canvas or no token
+                        }
+                    } catch (error) {
+                        console.error("Firebase authentication error:", error);
+                        showMessage("Error authenticating with the system. Please try again.", 'error');
+                    } finally {
+                        isAuthReady = true;
+                        document.getElementById('generateContractBtn').disabled = false; // Enable button after auth
+                    }
+                };
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('displayUserId').textContent = userId;
+                        document.getElementById('userIdContainer').classList.remove('hidden');
+                    } else {
+                        authenticate();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                showMessage("Error loading the system. Check configuration.", 'error');
+            }
+        };
+
+        // Function to calculate totals for LED panels
+        const calculateLedPanelTotal = (panelId) => {
+            const height = parseFloat(document.getElementById(`ledHeight_${panelId}`).value) || 0;
+            const width = parseFloat(document.getElementById(`ledWidth_${panelId}`).value) || 0;
+            const valorM2 = parseFloat(document.getElementById(`ledValorM2_${panelId}`).value) || 0;
+            const qtdM2 = height * width; // Calculate Qtd. m² from height * width
+            const total = qtdM2 * valorM2;
+            document.getElementById(`ledTotal_${panelId}`).textContent = `R$ ${total.toFixed(2)}`;
+            calculateOverallTotal();
+        };
+
+        // Function to calculate totals for grids and sound equipment
+        const calculateItemTotal = (prefix, qtyId, unitValueId, totalId) => {
+            const qty = parseFloat(document.getElementById(qtyId).value) || 0;
+            const unitValue = parseFloat(document.getElementById(unitValueId).value) || 0;
+            const total = qty * unitValue;
+            document.getElementById(totalId).textContent = `R$ ${total.toFixed(2)}`;
+            calculateOverallTotal();
+        };
+
+        // Function to calculate the overall total
+        const calculateOverallTotal = () => {
+            let totalSum = 0;
+
+            // LED Panels
+            document.querySelectorAll('#ledPanelsContainer [data-panel-id]').forEach(panelDiv => {
+                const panelId = panelDiv.dataset.panelId;
+                const height = parseFloat(document.getElementById(`ledHeight_${panelId}`).value) || 0;
+                const width = parseFloat(document.getElementById(`ledWidth_${panelId}`).value) || 0;
+                const valorM2 = parseFloat(document.getElementById(`ledValorM2_${panelId}`).value) || 0;
+                const qtdM2 = height * width;
+                totalSum += (qtdM2 * valorM2);
+            });
+
+            // Grids
+            const gridValorML = parseFloat(document.getElementById('gridValorML').value) || 0;
+            const gridQtdM = parseFloat(document.getElementById('gridQtdM').value) || 0;
+            totalSum += (gridValorML * gridQtdM);
+
+            // Sound Equipment
+            const micQtd = parseFloat(document.getElementById('micQtd').value) || 0;
+            const micValorUnit = parseFloat(document.getElementById('micValorUnit').value) || 0;
+            totalSum += (micQtd * micValorUnit);
+
+            const caixaQtd = parseFloat(document.getElementById('caixaQtd').value) || 0;
+            const caixaValorUnit = parseFloat(document.getElementById('caixaValorUnit').value) || 0;
+            totalSum += (caixaQtd * caixaValorUnit);
+
+            const tecnicoQtd = parseFloat(document.getElementById('tecnicoQtd').value) || 0;
+            const tecnicoValorUnit = parseFloat(document.getElementById('tecnicoValorUnit').value) || 0;
+            totalSum += (tecnicoQtd * tecnicoValorUnit);
+
+            document.getElementById('somaItens').textContent = `R$ ${totalSum.toFixed(2)}`;
+
+            // Apply discount
+            const descontoTipo = document.getElementById('descontoTipo').value;
+            let descontoValor = parseFloat(document.getElementById('descontoValor').value) || 0;
+            let finalValue = totalSum;
+
+            if (descontoTipo === 'percent') {
+                finalValue = totalSum * (1 - (descontoValor / 100));
+            } else if (descontoTipo === 'fixed') {
+                finalValue = totalSum - descontoValor;
+            }
+
+            document.getElementById('valorFinal').textContent = `R$ ${Math.max(0, finalValue).toFixed(2)}`;
+        };
+
+        // Add new LED Panel fields
+        const addLedPanel = () => {
+            panelCounter++;
+            const container = document.getElementById('ledPanelsContainer');
+            const newPanelDiv = document.createElement('div');
+            newPanelDiv.className = 'flex flex-col sm:flex-row items-end sm:space-x-4 space-y-4 sm:space-y-0 border p-3 rounded-md bg-orange-50';
+            newPanelDiv.dataset.panelId = panelCounter;
+            newPanelDiv.innerHTML = `
+                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                    <div>
+                        <label for="ledTipo_${panelCounter}" class="block text-sm font-medium text-gray-700 mb-1">Tipo:</label>
+                        <select id="ledTipo_${panelCounter}" name="ledTipo" required class="form-input">
+                            <option value="">Selecione</option>
+                            <option value="Indoor">Indoor</option>
+                            <option value="Outdoor">Outdoor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ledHeight_${panelCounter}" class="block text-sm font-medium text-gray-700 mb-1">Altura (m):</label>
+                        <input type="number" id="ledHeight_${panelCounter}" name="ledHeight" min="0" step="0.01" value="0" required class="form-input led-calc">
+                    </div>
+                    <div>
+                        <label for="ledWidth_${panelCounter}" class="block text-sm font-medium text-gray-700 mb-1">Largura (m):</label>
+                        <input type="number" id="ledWidth_${panelCounter}" name="ledWidth" min="0" step="0.01" value="0" required class="form-input led-calc">
+                    </div>
+                    <div>
+                        <label for="ledValorM2_${panelCounter}" class="block text-sm font-medium text-gray-700 mb-1">Valor por m² (R$):</label>
+                        <input type="number" id="ledValorM2_${panelCounter}" name="ledValorM2" min="0" step="0.01" value="0" required class="form-input led-calc">
+                    </div>
+                </div>
+                <div class="w-full sm:w-28 text-right flex flex-col justify-between h-full">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total:</label>
+                        <span id="ledTotal_${panelCounter}" class="block text-lg font-semibold text-orange-800">R$ 0.00</span>
+                    </div>
+                    <button type="button" class="remove-panel-btn mt-4 sm:mt-0" onclick="removePanel(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 4a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+            container.appendChild(newPanelDiv);
+
+            // Add event listeners for new inputs
+            newPanelDiv.querySelectorAll('.led-calc').forEach(input => {
+                input.addEventListener('input', () => calculateLedPanelTotal(panelCounter));
+            });
+
+            // Ensure the first panel's remove button is visible if more than one panel exists
+            const firstPanelRemoveBtn = document.querySelector('#ledPanelsContainer [data-panel-id="1"] .remove-panel-btn');
+            if (firstPanelRemoveBtn) {
+                firstPanelRemoveBtn.classList.remove('hidden');
+            }
+        };
+
+        // Remove LED Panel fields
+        window.removePanel = (button) => {
+            const panelDiv = button.closest('[data-panel-id]');
+            if (panelDiv) {
+                panelDiv.remove();
+                calculateOverallTotal(); // Recalculate after removal
+                // Hide remove button if only one panel remains
+                const remainingPanels = document.querySelectorAll('#ledPanelsContainer [data-panel-id]').length;
+                if (remainingPanels === 1) {
+                    document.querySelector('#ledPanelsContainer [data-panel-id="1"] .remove-panel-btn').classList.add('hidden');
+                }
+            }
+        };
+
+        // Generate Contract Content as HTML
+        const generateContractContent = (data) => {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('pt-BR');
+            const formattedTime = now.toLocaleTimeString('pt-BR');
+
+            let htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Contrato de Locação de Painéis de LED</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; margin: 40px; }
+                    h1, h2 { color: #1a202c; }
+                    h1 { text-align: center; font-size: 24pt; font-weight: bold; margin-bottom: 20pt; }
+                    h2 { font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt; }
+                    p, ul, table { font-size: 10pt; margin-bottom: 8pt; }
+                    ul { margin-left: 20pt; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    .text-right { text-align: right; }
+                    .financial-summary p { margin-bottom: 4pt; }
+                    .final-value { font-size: 14pt; font-weight: bold; color: #10B981; margin-top: 10pt; }
+                    hr { margin-top: 40pt; margin-bottom: 20pt; border: 0; border-top: 1px solid #eee; }
+                    .signature-area { text-align: center; margin-top: 20pt; display: flex; justify-content: space-around; }
+                    .signature-block { text-align: center; width: 45%; }
+                    .signature-line { margin-top: 50pt; border-bottom: 1px solid #000; padding-bottom: 5px; display: inline-block; width: 80%; }
+                    .footer-info { text-align: center; font-size: 8pt; color: #6b7280; margin-top: 20pt; }
+                </style>
+            </head>
+            <body>
+            <h1 style="text-align: center; font-family: 'Inter', sans-serif; font-size: 24pt; font-weight: bold; margin-bottom: 20pt;">CONTRATO DE LOCAÇÃO DE PAINÉIS DE LED</h1>
+
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">PARTES CONTRATUAIS:</h2>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>LOCADORA:</strong> ${data.locadoraNome}, inscrita no CNPJ sob o nº ${data.locadoraCNPJ}, com sede em ${data.locadoraEndereco}, telefone ${data.locadoraTelefone}, neste ato representada por ${data.locadoraResponsavel}.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>LOCATÁRIA:</strong> ${data.locatariaNome}, inscrita no CNPJ sob o nº ${data.locatariaCNPJ}, com sede em ${data.locatariaEndereco}, neste ato representada por ${data.locatariaResponsavel}.</p>
+
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">DADOS DO EVENTO / LOCAÇÃO:</h2>
+            <ul style="font-family: 'Inter', sans-serif; font-size: 10pt; margin-left: 20pt;">
+                <li><strong>Título da Locação:</strong> ${data.tituloLocacao}</li>
+                <li><strong>Local do Evento:</strong> ${data.localEvento}</li>
+                <li><strong>Quantidade de Dias:</strong> ${data.quantidadeDias}</li>
+                <li><strong>Datas Específicas:</strong> ${data.datasEspecificas}</li>
+            </ul>
+
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">SERVIÇOS CONTRATADOS:</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20pt; font-family: 'Inter', sans-serif; font-size: 10pt;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Item</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Tipo/Descrição</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Qtd.</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Valor Unit. (R$)</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Total (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            data.ledPanels.forEach(panel => {
+                const qtdM2Calculated = panel.height * panel.width;
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Painel de LED</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${panel.tipo} (${panel.height.toFixed(2)}m x ${panel.width.toFixed(2)}m)</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${qtdM2Calculated.toFixed(2)} m²</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${panel.valorM2.toFixed(2)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${(qtdM2Calculated * panel.valorM2).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            if (data.gridQtdM > 0 && data.gridValorML > 0) {
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Estruturas (Grids)</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Metro Linear</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${data.gridQtdM.toFixed(2)} m</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${data.gridValorML.toFixed(2)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${(data.gridQtdM * data.gridValorML).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+            if (data.micQtd > 0 && data.micValorUnit > 0) {
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Microfones</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Unidade</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${data.micQtd}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${data.micValorUnit.toFixed(2)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${(data.micQtd * data.micValorUnit).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+            if (data.caixaQtd > 0 && data.caixaValorUnit > 0) {
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Caixas de Som</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Unidade</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${data.caixaQtd}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${data.caixaValorUnit.toFixed(2)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${(data.caixaQtd * data.caixaValorUnit).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+            if (data.tecnicoQtd > 0 && data.tecnicoValorUnit > 0) {
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Técnico de Som</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">Unidade</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${data.tecnicoQtd}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${data.tecnicoValorUnit.toFixed(2)}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${(data.tecnicoQtd * data.tecnicoValorUnit).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+            htmlContent += `
+                </tbody>
+            </table>
+
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">RESUMO FINANCEIRO:</h2>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>Soma de Todos os Itens:</strong> R$ ${data.somaItens.toFixed(2)}</p>
+            `;
+            if (data.descontoTipo !== 'none') {
+                const discountLabel = data.descontoTipo === 'percent' ? `Percentual (${data.descontoValor}%)` : `Fixo (R$ ${data.descontoValor.toFixed(2)})`;
+                htmlContent += `<p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>Desconto:</strong> ${discountLabel} (R$ ${(data.somaItens - data.valorFinal).toFixed(2)})</p>`;
+            }
+            htmlContent += `
+            <p style="font-family: 'Inter', sans-serif; font-size: 14pt; font-weight: bold; color: #10B981; margin-top: 10pt;"><strong>VALOR FINAL DA LOCAÇÃO:</strong> R$ ${data.valorFinal.toFixed(2)}</p>
+
+            <h2 style="font-family: 'Inter', sans-serif; font-size: 16pt; font-weight: bold; margin-top: 20pt; margin-bottom: 10pt;">CLÁUSULAS CONTRATUAIS PADRÃO:</h2>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA PRIMEIRA - DO OBJETO:</strong> O presente contrato tem como objeto a locação dos equipamentos e serviços descritos no item 'Serviços Contratados' deste instrumento, para utilização no evento especificado.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA SEGUNDA - DO PRAZO:</strong> A locação terá a duração de ${data.quantidadeDias} dias, iniciando-se em [Data Início] e encerrando-se em [Data Fim], conforme datas específicas informadas.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA TERCEIRA - DO VALOR E FORMA DE PAGAMENTO:</strong> O valor total da locação é de R$ ${data.valorFinal.toFixed(2)}, a ser pago conforme as condições acordadas entre as partes.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA QUARTA - DAS RESPONSABILIDADES:</strong> A LOCATÁRIA será responsável pela guarda e conservação dos equipamentos locados durante o período de locação, respondendo por quaisquer danos ou perdas.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA QUINTA - DO CANCELAMENTO:</strong> Em caso de cancelamento, as partes deverão seguir as condições de multa e aviso prévio estabelecidas em anexo ou em acordo prévio.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA SEXTA - DA RESCISÃO:</strong> Este contrato poderá ser rescindido por justa causa, conforme as disposições legais aplicáveis.</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 10pt;"><strong>CLÁUSULA SÉTIMA - DO FORO:</strong> Fica eleito o foro da comarca de [Cidade da Locadora], Estado de [Estado da Locadora], para dirimir quaisquer dúvidas ou litígios decorrentes deste contrato.</p>
+
+            <hr style="margin-top: 40pt; margin-bottom: 20pt; border: 0; border-top: 1px solid #eee;">
+
+            <p style="text-align: center; margin-bottom: 40pt; font-family: 'Inter', sans-serif; font-size: 10pt;">[ESPAÇO PARA ASSINATURAS]</p>
+
+            <div style="display: flex; justify-content: space-around; margin-top: 20pt; font-family: 'Inter', sans-serif; font-size: 10pt;">
+                <div style="text-align: center; width: 45%;">
+                    <p><strong>LOCADORA</strong></p>
+                    <p style="margin-top: 50pt; border-bottom: 1px solid #000; padding-bottom: 5px;">&nbsp;</p>
+                    <p>${data.locadoraResponsavel}</p>
+                    <p>CNPJ: ${data.locadoraCNPJ}</p>
+                </div>
+                <div style="text-align: center; width: 45%;">
+                    <p><strong>LOCATÁRIA</strong></p>
+                    <p style="margin-top: 50pt; border-bottom: 1px solid #000; padding-bottom: 5px;">&nbsp;</p>
+                    <p>${data.locatariaResponsavel}</p>
+                    <p>CNPJ: ${data.locatariaCNPJ}</p>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 40pt; font-family: 'Inter', sans-serif; font-size: 8pt;">Data: ${formattedDate} às ${formattedTime}</p>
+
+            <hr style="margin-top: 20pt; margin-bottom: 20pt; border: 0; border-top: 1px solid #eee;">
+            <p style="text-align: center; font-family: 'Inter', sans-serif; font-size: 8pt; color: #6b7280;">
+                Contato: seuemail@exemplo.com | Telefone: (XX) XXXX-XXXX | Website: seuwebsite.com
+            </p>
+            </body>
+            </html>
+            `;
+
+            return htmlContent;
+        };
+
+        // Handle form submission
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            const generateContractBtn = document.getElementById('generateContractBtn');
+            generateContractBtn.disabled = true;
+            showMessage('', 'hidden'); // Clear previous messages
+
+            if (!db || !userId || !isAuthReady) {
+                showMessage("Sistema não inicializado ou autenticação pendente. Aguarde e tente novamente.", 'error');
+                generateContractBtn.disabled = false;
+                return;
+            }
+
+            // Collect form data
+            const formData = {
+                locadoraNome: document.getElementById('locadoraNome').value,
+                locadoraCNPJ: document.getElementById('locadoraCNPJ').value,
+                locadoraEndereco: document.getElementById('locadoraEndereco').value,
+                locadoraTelefone: document.getElementById('locadoraTelefone').value,
+                locadoraResponsavel: document.getElementById('locadoraResponsavel').value,
+                locatariaNome: document.getElementById('locatariaNome').value,
+                locatariaCNPJ: document.getElementById('locatariaCNPJ').value,
+                locatariaEndereco: document.getElementById('locatariaEndereco').value,
+                locatariaResponsavel: document.getElementById('locatariaResponsavel').value,
+                tituloLocacao: document.getElementById('tituloLocacao').value,
+                localEvento: document.getElementById('localEvento').value,
+                quantidadeDias: parseInt(document.getElementById('quantidadeDias').value) || 0,
+                datasEspecificas: document.getElementById('datasEspecificas').value,
+                
+                // LED Panels
+                ledPanels: [],
+                gridValorML: parseFloat(document.getElementById('gridValorML').value) || 0,
+                gridQtdM: parseFloat(document.getElementById('gridQtdM').value) || 0,
+                micQtd: parseFloat(document.getElementById('micQtd').value) || 0,
+                micValorUnit: parseFloat(document.getElementById('micValorUnit').value) || 0,
+                caixaQtd: parseFloat(document.getElementById('caixaQtd').value) || 0,
+                caixaValorUnit: parseFloat(document.getElementById('caixaValorUnit').value) || 0,
+                tecnicoQtd: parseFloat(document.getElementById('tecnicoQtd').value) || 0,
+                tecnicoValorUnit: parseFloat(document.getElementById('tecnicoValorUnit').value) || 0,
+            };
+
+            document.querySelectorAll('#ledPanelsContainer [data-panel-id]').forEach(panelDiv => {
+                const panelId = panelDiv.dataset.panelId;
+                formData.ledPanels.push({
+                    tipo: document.getElementById(`ledTipo_${panelId}`).value,
+                    height: parseFloat(document.getElementById(`ledHeight_${panelId}`).value) || 0, 
+                    width: parseFloat(document.getElementById(`ledWidth_${panelId}`).value) || 0,
+                    valorM2: parseFloat(document.getElementById(`ledValorM2_${panelId}`).value) || 0,
+                });
+            });
+
+            // Calculate final values for storage
+            calculateOverallTotal(); // Ensure latest totals are reflected
+            formData.somaItens = parseFloat(document.getElementById('somaItens').textContent.replace('R$ ', '')) || 0;
+            formData.descontoTipo = document.getElementById('descontoTipo').value;
+            formData.descontoValor = parseFloat(document.getElementById('descontoValor').value) || 0;
+            formData.valorFinal = parseFloat(document.getElementById('valorFinal').textContent.replace('R$ ', '')) || 0;
+
+
+            try {
+                // Generate Contract Content
+                const contractHtml = generateContractContent(formData);
+
+                // Display in modal
+                generatedContractHtml.innerHTML = contractHtml; // Set innerHTML for rendering
+                contractModal.classList.remove('hidden');
+                
+                // Save to Firestore
+                const appId = typeof __app_id !== 'undefined' ? JSON.parse(__app_id)['projectId'] : (firebaseConfig.projectId || 'default-app-id'); // Use projectId from firebaseConfig
+                const contractsCollection = collection(db, `artifacts/${appId}/users/${userId}/rental_contracts`);
+                await addDoc(contractsCollection, {
+                    ...formData,
+                    timestamp: serverTimestamp(),
+                    contentGenerated: true // Indicates content was generated
+                });
+
+                showMessage('Conteúdo do contrato gerado e salvo com sucesso! Copie ou descarregue o HTML para o Google Docs.', 'success');
+
+            } catch (error) {
+                console.error("Error submitting contract or generating content:", error);
+                showMessage(`Erro ao processar sua solicitação: ${error.message}. Tente novamente.`, 'error');
+            } finally {
+                generateContractBtn.disabled = false;
+            }
+        };
+
+        // Modal elements
+        const contractModal = document.getElementById('contractModal');
+        const generatedContractHtml = document.getElementById('generatedContractHtml');
+        const copyContractHtmlBtn = document.getElementById('copyContractHtmlBtn');
+        const downloadContractHtmlBtn = document.getElementById('downloadContractHtmlBtn');
+        const closeContractModalBtn = document.getElementById('closeContractModalBtn');
+
+        // Event listeners for modal
+        closeContractModalBtn.addEventListener('click', () => {
+            contractModal.classList.add('hidden');
+        });
+
+        copyContractHtmlBtn.addEventListener('click', () => {
+            // To copy HTML, we create a temporary div, put the HTML inside, select it, and copy
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = generatedContractHtml.innerHTML;
+            document.body.appendChild(tempDiv);
+            const range = document.createRange();
+            range.selectNodeContents(tempDiv);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                console.log('HTML copiado para a área de transferência!');
+                showMessage('HTML do contrato copiado para a área de transferência!', 'success');
+            } catch (err) {
+                console.error('Falha ao copiar HTML: ', err);
+                showMessage('Falha ao copiar HTML. Tente novamente.', 'error');
+            }
+            selection.removeAllRanges();
+            document.body.removeChild(tempDiv);
+        });
+
+        downloadContractHtmlBtn.addEventListener('click', () => {
+            // Get the full HTML content including doctype and head/body
+            const fullHtmlContent = `<!DOCTYPE html><html><head>${document.head.innerHTML}</head><body>${generatedContractHtml.innerHTML}</body></html>`;
+            const blob = new Blob([fullHtmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'contrato_locacao_led.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage('Ficheiro HTML descarregado com sucesso!', 'success');
+        });
+
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            initializeFirebase();
+
+            // Add input listeners for calculations
+            document.querySelectorAll('.led-calc').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const panelId = e.target.closest('[data-panel-id]').dataset.panelId;
+                    calculateLedPanelTotal(panelId);
+                });
+            });
+
+            document.getElementById('gridValorML').addEventListener('input', () => calculateItemTotal('grid', 'gridQtdM', 'gridValorML', 'gridTotal'));
+            document.getElementById('gridQtdM').addEventListener('input', () => calculateItemTotal('grid', 'gridQtdM', 'gridValorML', 'gridTotal'));
+
+            document.getElementById('micQtd').addEventListener('input', () => calculateItemTotal('mic', 'micQtd', 'micValorUnit', 'micTotal'));
+            document.getElementById('micValorUnit').addEventListener('input', () => calculateItemTotal('mic', 'micQtd', 'micValorUnit', 'micTotal'));
+
+            document.getElementById('caixaQtd').addEventListener('input', () => calculateItemTotal('caixa', 'caixaQtd', 'caixaValorUnit', 'caixaTotal'));
+            document.getElementById('caixaValorUnit').addEventListener('input', () => calculateItemTotal('caixa', 'caixaQtd', 'caixaValorUnit', 'caixaTotal'));
+
+            document.getElementById('tecnicoQtd').addEventListener('input', () => calculateItemTotal('tecnico', 'tecnicoQtd', 'tecnicoValorUnit', 'tecnicoTotal'));
+            document.getElementById('tecnicoValorUnit').addEventListener('input', () => calculateItemTotal('tecnico', 'tecnicoQtd', 'tecnicoValorUnit', 'tecnicoTotal'));
+
+            document.getElementById('descontoTipo').addEventListener('change', (e) => {
+                const descontoValorInput = document.getElementById('descontoValor');
+                descontoValorInput.disabled = e.target.value === 'none';
+                calculateOverallTotal();
+            });
+            document.getElementById('descontoValor').addEventListener('input', calculateOverallTotal);
+
+            // Initial calculation
+            calculateOverallTotal();
+
+            document.getElementById('addLedPanelBtn').addEventListener('click', addLedPanel);
+            document.getElementById('contractForm').addEventListener('submit', handleSubmit);
+
+            document.getElementById('copyUserIdBtn').addEventListener('click', () => {
+                copyToClipboard(userId);
+            });
+
+            // Disable submit button initially until Firebase is ready
+            document.getElementById('generateContractBtn').disabled = true;
+
+            // Add form-input class for consistent styling
+            document.querySelectorAll('input:not([type="file"]), textarea, select').forEach(element => {
+                element.classList.add('mt-1', 'block', 'w-full', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:ring-blue-500', 'focus:border-blue-500', 'sm:text-sm');
+            });
+            document.querySelectorAll('input[type="file"]').forEach(element => {
+                element.classList.add('mt-1', 'block', 'w-full', 'text-sm', 'text-gray-500', 'file:mr-4', 'file:py-2', 'file:px-4', 'file:rounded-full', 'file:border-0', 'file:text-sm', 'file:font-semibold', 'file:bg-blue-50', 'file:text-blue-700', 'hover:file:bg-blue-100');
+            });
+        });
+    </script>
+</body>
+</html>
