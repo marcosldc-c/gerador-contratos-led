@@ -363,7 +363,7 @@
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase variables
-        let app;
+        let app; // Declare app globally here
         let db;
         let auth;
         let userId = null;
@@ -400,19 +400,16 @@
         // Initialize Firebase
         const initializeFirebase = async () => {
             try {
-                // Use a placeholder Firebase config if __firebase_config is not defined (e.g., on Vercel)
-                const firebaseConfig = typeof __firebase_config !== 'undefined'
-                    ? JSON.parse(__firebase_config)
-                    : {
-                        apiKey: "YOUR_API_KEY", // Substitua pela sua chave de API do Firebase
-                        authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // Substitua pelo seu ID de projeto
-                        projectId: "YOUR_PROJECT_ID", // Substitua pelo seu ID de projeto
-                        storageBucket: "YOUR_PROJECT_ID.appspot.com", // Substitua pelo seu ID de projeto
-                        messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Substitua pelo seu ID de remetente
-                        appId: "YOUR_APP_ID" // Substitua pelo seu App ID
-                    };
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAiN972JTUc1dv0zcOmhPrMTg-jaCCqZfo",
+                    authDomain: "orcamentoprojectled.firebaseapp.com",
+                    projectId: "orcamentoprojectled",
+                    storageBucket: "orcamentoprojectled.firebasestorage.app",
+                    messagingSenderId: "606492586925",
+                    appId: "1:606492586925:web:a72379a323618612b36724",
+                    measurementId: "G-X6RBJQZC9K"};
 
-                app = initializeApp(firebaseConfig);
+                app = initializeApp(firebaseConfig); // Atribui a app global
                 db = getFirestore(app);
                 auth = getAuth(app);
 
@@ -422,14 +419,16 @@
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
-                            await signInAnonymously(auth); // Sign in anonymously if not in Canvas or no token
+                            // Se não estiver no ambiente Canvas ou não houver token inicial, tenta autenticar anonimamente.
+                            // Isto requer que a autenticação anónima esteja ativada no seu projeto Firebase.
+                            await signInAnonymously(auth); 
                         }
                     } catch (error) {
                         console.error("Firebase authentication error:", error);
-                        showMessage("Error authenticating with the system. Please try again.", 'error');
+                        showMessage("Erro ao autenticar no sistema. Por favor, verifique as suas credenciais Firebase e tente novamente.", 'error');
                     } finally {
                         isAuthReady = true;
-                        document.getElementById('generateContractBtn').disabled = false; // Enable button after auth
+                        document.getElementById('generateContractBtn').disabled = false; // Habilita o botão após autenticação (ou tentativa)
                     }
                 };
 
@@ -439,13 +438,14 @@
                         document.getElementById('displayUserId').textContent = userId;
                         document.getElementById('userIdContainer').classList.remove('hidden');
                     } else {
+                        // Se não houver utilizador logado (primeira vez ou sessão expirada), tenta autenticar.
                         authenticate();
                     }
                 });
 
             } catch (error) {
                 console.error("Firebase initialization error:", error);
-                showMessage("Error loading the system. Check configuration.", 'error');
+                showMessage("Erro ao carregar o sistema. Por favor, verifique a configuração do Firebase no código.", 'error');
             }
         };
 
@@ -828,7 +828,8 @@
                 contractModal.classList.remove('hidden');
                 
                 // Save to Firestore
-                const appId = typeof __app_id !== 'undefined' ? JSON.parse(__app_id)['projectId'] : (firebaseConfig.projectId || 'default-app-id'); // Use projectId from firebaseConfig
+                // Acessa o projectId da config do Firebase, se disponível, ou usa um padrão.
+                const appId = firebaseConfig.projectId || 'default-app-id'; 
                 const contractsCollection = collection(db, `artifacts/${appId}/users/${userId}/rental_contracts`);
                 await addDoc(contractsCollection, {
                     ...formData,
@@ -899,7 +900,7 @@
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('currentYear').textContent = new Date().getFullYear();
-            initializeFirebase();
+            initializeFirebase(); // Call the main initialization function
 
             // Add input listeners for calculations
             document.querySelectorAll('.led-calc').forEach(input => {
